@@ -11,21 +11,18 @@ import androidx.lifecycle.asLiveData
 
 class MovieViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: MovieRepository
-    private var _allMovies: LiveData<List<Movie>>? = null
+    private var _allMovies: LiveData<List<Movie>> = MutableLiveData(emptyList())
 
-    val allMovies: LiveData<List<Movie>>
-        get() {
-            return _allMovies ?: MutableLiveData<List<Movie>>().also {
-                viewModelScope.launch {
-                    _allMovies = repository.getAllMovies().asLiveData()
-                }
-            }
-        }
+
+    val allMovies: LiveData<List<Movie>>?
+        get() = _allMovies
+
 
     init {
         val movieDao = AppDatabase.getInstance(application).movieDao()
         val movieDetailsDao = AppDatabase.getInstance(application).movieDetailsDao()
         repository = MovieRepository(movieDao, movieDetailsDao)
+        _allMovies = repository.getAllMovies().asLiveData()
     }
 
     // Other functions in your ViewModel...

@@ -46,22 +46,12 @@ class MainActivity : AppCompatActivity() {
                     val movieResponse = ApiClient.api.getMovies(ApiClient.API_KEY, "batman")
                     val movies = movieResponse.Search
 
-                    // Update UI on the main thread
+                    // Insert movies into the database on the main thread
                     withContext(Dispatchers.Main) {
                         movieViewModel.insertMovies(movies)
                     }
-
                 }
 
-                // Load data from the ViewModel's LiveData
-                val moviesFromViewModel = movieViewModel.allMovies.value
-
-                // Update UI on the main thread
-                withContext(Dispatchers.Main) {
-                    if (moviesFromViewModel != null) {
-                        movieAdapter.setData(moviesFromViewModel)
-                    }
-                }
             } catch (e: Exception) {
                 // Handle the exception
                 withContext(Dispatchers.Main) {
@@ -71,7 +61,15 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        // Observe allMovies LiveData
+        movieViewModel.allMovies?.observe(this) { movies ->
+            // Update the adapter data when allMovies changes
+            movieAdapter.setData(movies)
+        }
     }
+
+
 
 
     private fun isNetworkAvailable(): Boolean {

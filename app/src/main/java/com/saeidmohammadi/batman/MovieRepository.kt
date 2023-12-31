@@ -3,7 +3,7 @@ package com.saeidmohammadi.batman
 import kotlinx.coroutines.flow.Flow
 
 class MovieRepository(private val movieDao: MovieDao, private val movieDetailsDao: MovieDetailsDao) {
-    suspend fun getAllMovies(): Flow<List<Movie>> {
+     fun getAllMovies(): Flow<List<Movie>> {
         return movieDao.getAllMovies()
     }
 
