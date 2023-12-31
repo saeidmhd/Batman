@@ -8,7 +8,6 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -68,8 +67,6 @@ class MainActivity : AppCompatActivity() {
             movieAdapter.setData(movies)
         }
     }
-
-
 
 
     private fun isNetworkAvailable(): Boolean {

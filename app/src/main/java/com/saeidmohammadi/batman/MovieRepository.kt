@@ -11,7 +11,7 @@ class MovieRepository(private val movieDao: MovieDao, private val movieDetailsDa
         movieDao.insertMovies(movies)
     }
 
-    suspend fun getMovieDetails(imdbID: String): MovieDetails? {
+     fun getMovieDetails(imdbID: String): Flow<MovieDetails?> {
         return movieDetailsDao.getMovieDetails(imdbID)
     }
 

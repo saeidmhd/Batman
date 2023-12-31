@@ -1,9 +1,11 @@
 package com.saeidmohammadi.batman
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -24,20 +26,13 @@ class MovieDetailsActivity : AppCompatActivity() {
             loadMovieDetails(imdbID)
         }
     }
-
     private fun loadMovieDetails(imdbID: String) {
+        val movieViewModel = ViewModelProvider(this).get(MovieViewModel::class.java)
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val movieDetails = ApiClient.api.getMovieDetails(ApiClient.API_KEY, imdbID)
                 withContext(Dispatchers.Main) {
-                    // نمایش جزئیات فیلم به کاربر
-                    movieDetailsView.text = """
-                        Title: ${movieDetails.Title}
-                        Year: ${movieDetails.Year}
-                        Genre: ${movieDetails.Genre}
-                        Plot: ${movieDetails.Plot}
-                        Director: ${movieDetails.Director}
-                    """.trimIndent()
+                    movieViewModel.insertMovieDetails(movieDetails)
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
@@ -46,5 +41,21 @@ class MovieDetailsActivity : AppCompatActivity() {
                 }
             }
         }
+        movieViewModel.getMovieDetails(imdbID).observe(this) { movieDetails ->
+            if (movieDetails != null) {
+                // Update UI with movieDetails
+                movieDetailsView.text = """
+            Title: ${movieDetails.Title}
+            Year: ${movieDetails.Year}
+            Genre: ${movieDetails.Genre}
+            Plot: ${movieDetails.Plot}
+            Director: ${movieDetails.Director}
+        """.trimIndent()
+            }
+        }
+
     }
+
+
 }
+

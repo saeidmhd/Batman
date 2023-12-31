@@ -7,37 +7,29 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import androidx.lifecycle.asLiveData
-
-
+import kotlinx.coroutines.flow.Flow
 class MovieViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: MovieRepository
-    private var _allMovies: LiveData<List<Movie>> = MutableLiveData(emptyList())
-
-
-    val allMovies: LiveData<List<Movie>>?
-        get() = _allMovies
-
-
+    lateinit var allMovies: LiveData<List<Movie>>
     init {
         val movieDao = AppDatabase.getInstance(application).movieDao()
         val movieDetailsDao = AppDatabase.getInstance(application).movieDetailsDao()
         repository = MovieRepository(movieDao, movieDetailsDao)
-        _allMovies = repository.getAllMovies().asLiveData()
+
+        // Use viewModelScope.launch to call getAllMovies within a coroutine
+        viewModelScope.launch {
+            allMovies = repository.getAllMovies().asLiveData()
+        }
     }
 
-    // Other functions in your ViewModel...
-
-    // Note: You can remove this function if not needed
     fun insertMovies(movies: List<Movie>) = viewModelScope.launch {
         repository.insertMovies(movies)
     }
 
-    // Note: You can remove this function if not needed
-    suspend fun getMovieDetails(imdbID: String): MovieDetails? {
-        return repository.getMovieDetails(imdbID)
+    fun getMovieDetails(imdbID: String): LiveData<MovieDetails?> {
+        return repository.getMovieDetails(imdbID).asLiveData()
     }
 
-    // Note: You can remove this function if not needed
     fun insertMovieDetails(movieDetails: MovieDetails) = viewModelScope.launch {
         repository.insertMovieDetails(movieDetails)
     }
