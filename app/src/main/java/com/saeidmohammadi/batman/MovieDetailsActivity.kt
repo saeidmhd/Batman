@@ -1,5 +1,7 @@
 package com.saeidmohammadi.batman
 
+import android.content.Context
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
@@ -14,6 +16,7 @@ import kotlinx.coroutines.withContext
 class MovieDetailsActivity : AppCompatActivity() {
 
     private lateinit var movieDetailsView: TextView
+    private lateinit var movieViewModel: MovieViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,39 +26,51 @@ class MovieDetailsActivity : AppCompatActivity() {
 
         val imdbID = intent.getStringExtra("imdbID")
         if (imdbID != null) {
+            movieViewModel = ViewModelProvider(this).get(MovieViewModel::class.java)
             loadMovieDetails(imdbID)
         }
     }
+
+
     private fun loadMovieDetails(imdbID: String) {
-        val movieViewModel = ViewModelProvider(this).get(MovieViewModel::class.java)
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val movieDetails = ApiClient.api.getMovieDetails(ApiClient.API_KEY, imdbID)
-                withContext(Dispatchers.Main) {
-                    movieViewModel.insertMovieDetails(movieDetails)
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    // نمایش پیام خطا به کاربر
+        if (isNetworkAvailable(this)) {
+            // If network is available, load movie details from API
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val movieDetails = ApiClient.api.getMovieDetails(ApiClient.API_KEY, imdbID)
+                    withContext(Dispatchers.Main) {
+                        movieViewModel.insertMovieDetails(movieDetails)
+                        updateUI(movieDetails)
+                    }
+                } catch (e: Exception) {
+                    Log.e("API_ERROR", "Error loading movie details", e)
                     Toast.makeText(this@MovieDetailsActivity, "Error loading movie details", Toast.LENGTH_SHORT).show()
                 }
             }
+        } else {
+            // If network is unavailable, observe movie details from the database
+            movieViewModel.getMovieDetails(imdbID).observe(this) { movieDetails ->
+                updateUI(movieDetails)
+            }
         }
-        movieViewModel.getMovieDetails(imdbID).observe(this) { movieDetails ->
-            if (movieDetails != null) {
-                // Update UI with movieDetails
-                movieDetailsView.text = """
+    }
+
+
+    private fun updateUI(movieDetails: MovieDetails?) {
+        if (movieDetails != null) {
+            movieDetailsView.text = """
             Title: ${movieDetails.Title}
             Year: ${movieDetails.Year}
             Genre: ${movieDetails.Genre}
             Plot: ${movieDetails.Plot}
             Director: ${movieDetails.Director}
         """.trimIndent()
-            }
         }
-
     }
 
-
+    private fun isNetworkAvailable(context: MovieDetailsActivity): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetworkInfo = connectivityManager.activeNetworkInfo
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected
+    }
 }
-
