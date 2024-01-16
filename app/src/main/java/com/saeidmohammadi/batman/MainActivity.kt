@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadMoviesFromDatabase() {
         // Observe allMovies LiveData
-        movieViewModel.allMovies?.observe(this) { movies ->
+        movieViewModel.allMovies.observe(this) { movies ->
             // Update the adapter data when allMovies changes
             movieAdapter.setData(movies)
         }
